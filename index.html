@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>BABYMONSTER • KARINA • WONYOUNG • IRENE</title>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0a0a0a;--text:#fff;--muted:#86868b}
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  .header{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+  .header-label{font-size:0.7rem;font-weight:600;letter-spacing:0.1em;opacity:0.4;text-transform:uppercase}
+  .header-counter{font-size:0.7rem;font-weight:500;color:var(--muted);opacity:0.5}
+  .stage{position:fixed;inset:0;perspective:1200px;display:flex;align-items:center;justify-content:center}
+  /* ── landscape card ── */
+  .card{position:absolute;width:340px;height:200px;left:50%;top:50%;margin-left:-170px;margin-top:-100px;border-radius:16px;overflow:hidden;will-change:transform,opacity;box-shadow:0 20px 60px rgba(0,0,0,0.55);pointer-events:none}
+  .card-bg{position:absolute;inset:0;background-size:cover;background-position:50% 30%;z-index:0}
+  .card-gradient{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(0,0,0,0.25) 60%,rgba(0,0,0,0.85) 100%);z-index:1}
+  .card-label{position:absolute;bottom:16px;left:18px;right:18px;z-index:2;display:flex;flex-direction:column;gap:2px}
+  .card-name-zh{font-size:0.65rem;font-weight:500;letter-spacing:0.06em;opacity:0.55}
+  .card-name-en{font-size:1.2rem;font-weight:700;letter-spacing:-0.01em;line-height:1}
+  .card-role{font-size:0.65rem;font-weight:400;opacity:0.5;letter-spacing:0.03em;margin-top:1px}
+  .swipe-up-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:3;font-size:0.6rem;letter-spacing:0.08em;opacity:0;transition:opacity 0.5s;pointer-events:none}
+  .card.center-card .swipe-up-hint{opacity:0.5}
+  /* ── detail ── */
+  .detail-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.45s cubic-bezier(0.25,0.1,0.25,1)}
+  .detail-overlay.active{opacity:1;pointer-events:auto}
+  .detail-header{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+  .detail-title{font-size:0.8rem;font-weight:600}
+  .detail-close{font-size:0.7rem;opacity:0.5;letter-spacing:0.06em;cursor:pointer;padding:8px}
+  .detail-carousel-wrap{flex:1;display:flex;align-items:center;justify-content:center;perspective:800px;overflow:hidden;position:relative}
+  .detail-card{position:absolute;width:320px;height:190px;left:50%;top:50%;margin-left:-160px;margin-top:-95px;border-radius:14px;overflow:hidden;will-change:transform,opacity;box-shadow:0 10px 30px rgba(0,0,0,0.45)}
+  .detail-card .card-bg{position:absolute;inset:0;background-size:cover;background-position:50% 30%;z-index:0}
+  .detail-card .card-gradient{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(0,0,0,0.25) 60%,rgba(0,0,0,0.85) 100%);z-index:1}
+  .detail-card .card-label{bottom:14px;left:14px;right:14px}
+  .detail-card .card-name-en{font-size:1.05rem}
+  .detail-desc{padding:12px 20px 20px;flex-shrink:0;text-align:center}
+  .detail-desc p{font-size:0.75rem;opacity:0.5;line-height:1.5}
+  .detail-dots{display:flex;gap:5px;justify-content:center;margin-bottom:8px}
+  .detail-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.25);transition:all 0.35s}
+  .detail-dot.active{background:#fff;width:16px;border-radius:3px}
+  .detail-back-hint{position:absolute;top:50px;left:50%;transform:translateX(-50%);z-index:310;font-size:0.6rem;letter-spacing:0.08em;opacity:0.3;pointer-events:none}
+  .edge-fade{position:fixed;top:0;bottom:0;width:80px;z-index:50;pointer-events:none}
+  .edge-fade.left{left:0;background:linear-gradient(to right,var(--bg) 0%,transparent 100%)}
+  .edge-fade.right{right:0;background:linear-gradient(to left,var(--bg) 0%,transparent 100%)}
+  .dots{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:100}
+  .dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.35s}
+  .dot.active{background:#fff;width:18px;border-radius:3px}
+  @media(max-width:480px){.card{width:300px;height:178px;margin-left:-150px;margin-top:-89px}.detail-card{width:280px;height:168px;margin-left:-140px;margin-top:-84px}.card-name-en{font-size:1.1rem}.detail-card .card-name-en{font-size:0.95rem}}
+</style>
+</head>
+<body>
+
+<div class="header"><span class="header-label">BAEMON + KARINA + WONYOUNG + IRENE</span><span class="header-counter" id="counter">1/10</span></div>
+<div class="edge-fade left" id="efL"></div>
+<div class="edge-fade right" id="efR"></div>
+<div class="stage" id="stage"></div>
+<div class="dots" id="dots"></div>
+
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-back-hint">↓ 下滑返回</div>
+  <div class="detail-header"><span class="detail-title" id="detailTitle"></span><span class="detail-close" id="detailClose">返回</span></div>
+  <div class="detail-carousel-wrap" id="detailWrap"><div class="detail-carousel" id="detailCarousel"></div></div>
+  <div class="detail-desc"><div class="detail-dots" id="detailDots"></div><p id="detailDesc"></p></div>
+</div>
+
+<script>
+const MEMBERS = [
+  {id:'ruka',en:'Ruka',zh:'河井瑠花',role:'Main Rapper · Dancer · 大姐',color:'#1a3a2a',accent:'#2ecc71',grad:'#0d1f14,#1a3a2a',
+   photo:'https://img.youtube.com/vi/p3QCv9Ubcx0/maxresdefault.jpg',
+   desc:'YG首位日本籍女Rapper。利落的舞蹈与低音Rap出道即引爆话题。',
+   scenes:[
+     {title:'SHEESH',sub:'银色短发',desc:'240401 回归主打，标志性短发造型引发全球热议',photo:'https://img.youtube.com/vi/glau3uKW7Xk/maxresdefault.jpg'},
+     {title:'WEGO',sub:'品牌代言',desc:'2025 与Asa共同担任WEGO Summer Campaign模特',photo:'https://img.youtube.com/vi/WtWZBEFzs58/maxresdefault.jpg'},
+   ]},
+  {id:'pharita',en:'Pharita',zh:'帕丽塔',role:'Vocalist · Visual',color:'#2a1a20',accent:'#e74c3c',grad:'#1a1014,#2a1a20',
+   photo:'https://img.youtube.com/vi/gzQmNGdcebQ/maxresdefault.jpg',
+   desc:'泰籍Vocalist。甜美音色与优雅气质成为队内视觉中心。',
+   scenes:[
+     {title:'BATTER UP',sub:'出道首秀',desc:'231127 出道单曲，一袭红裙惊艳初亮相',photo:'https://img.youtube.com/vi/Rhpf0d5fxz0/maxresdefault.jpg'},
+     {title:'VOGUE HK',sub:'时尚封面',desc:'2026.03 VOGUE香港版封面，黑色蕾丝造型惊艳',photo:'https://img.youtube.com/vi/K2CdoZXS90w/maxresdefault.jpg'},
+   ]},
+  {id:'asa',en:'Asa',zh:'榎並杏紗',role:'Main Rapper · Dancer',color:'#1a1428',accent:'#9b59b6',grad:'#121020,#1a1428',
+   photo:'https://img.youtube.com/vi/XRPjwv8rLHQ/maxresdefault.jpg',
+   desc:'YG首位日本籍女Main Rapper。Rap节奏感与表现力被杨贤硕赞为天生艺人。',
+   scenes:[
+     {title:'DANGEROUSLY',sub:'传奇Cover',desc:'出道前翻唱破千万播放，声线穿透力震惊韩网',photo:'https://img.youtube.com/vi/Y1RMmsCdAjU/maxresdefault.jpg'},
+     {title:'LIKE THAT',sub:'紫发封神',desc:'240531 回归曲，紫色长发+高速Rap段落封神',photo:'https://img.youtube.com/vi/CKqpIxMJgNc/maxresdefault.jpg'},
+   ]},
+  {id:'ahyeon',en:'Ahyeon',zh:'郑雅譞',role:'Main Vocal · Center · ACE',color:'#2a1a0a',accent:'#e67e22',grad:'#1a0f06,#2a1a0a',
+   photo:'https://img.youtube.com/vi/H2MNesN36yk/maxresdefault.jpg',
+   desc:'队内全能Center。唱跳Rap三项俱佳，《SHEESH》高音被誉为五代最强之一。',
+   scenes:[
+     {title:'DANGEROUSLY',sub:'千万播放',desc:'出道前Cover震惊全韩网，YG秘密武器称号由此而来',photo:'https://img.youtube.com/vi/PbMLcs0-Bjk/maxresdefault.jpg'},
+     {title:'SHEESH',sub:'金色长发',desc:'240401 主打，金色长发+连续高音登上韩网热搜第一',photo:'https://img.youtube.com/vi/FPFESWn_n74/maxresdefault.jpg'},
+   ]},
+  {id:'rami',en:'Rami',zh:'申厦藍',role:'Main Vocalist',color:'#1a1a0a',accent:'#f1c40f',grad:'#121200,#1a1a0a',
+   photo:'https://img.youtube.com/vi/aM7995s-NX0/maxresdefault.jpg',
+   desc:'年仅17岁的主唱。被YG声乐导师评为上天赐予的嗓音。',
+   scenes:[
+     {title:'PICK UP',sub:'神级翻唱',desc:'翻唱Lianne La Havas名曲，17岁的声音惊艳乐评人',photo:'https://img.youtube.com/vi/MXPpNl2ufJI/maxresdefault.jpg'},
+     {title:'LAST EVAL',sub:'YG最终测评',desc:'YG出道前最后一次评估，以超强稳定性锁定主唱位置',photo:'https://img.youtube.com/vi/mZDnRoAeXqo/maxresdefault.jpg'},
+   ]},
+  {id:'rora',en:'Rora',zh:'李茶仁',role:'Lead Vocalist · Visual',color:'#0a1a28',accent:'#3498db',grad:'#060e17,#0a1a28',
+   photo:'https://img.youtube.com/vi/lEw3--zovyE/maxresdefault.jpg',
+   desc:'前童星出道。曾是U.SSO Girl成员，与NewJeans Hyein同期。',
+   scenes:[
+     {title:'STUCK',sub:'蓝裙精灵',desc:'Stuck In The Middle MV蓝色长裙造型获精灵本灵赞誉',photo:'https://img.youtube.com/vi/5v1Xl0LVCrw/maxresdefault.jpg'},
+     {title:'BABYMONS7ER',sub:'首张EP',desc:'240401 首张迷你专辑视觉照，浅蓝氛围感造型封神',photo:'https://img.youtube.com/vi/bs6mv7VRIKE/maxresdefault.jpg'},
+   ]},
+  {id:'chiquita',en:'Chiquita',zh:'柒可塔',role:'Vocalist · 忙内',color:'#2a0a20',accent:'#ff69b4',grad:'#1a0612,#2a0a20',
+   photo:'https://img.youtube.com/vi/yo64syhzWJU/maxresdefault.jpg',
+   desc:'来自泰国的忙内。14岁出道，以元气形象和Live实力圈粉无数。',
+   scenes:[
+     {title:'BATTER UP',sub:'14岁初舞台',desc:'年仅14岁站上出道舞台，甜美笑容被赞天生偶像',photo:'https://img.youtube.com/vi/rCvMka8mnd4/maxresdefault.jpg'},
+     {title:'LIKE THAT',sub:'成长时刻',desc:'240531 回归，肉眼可见的实力进步被称为成长型爱豆',photo:'https://img.youtube.com/vi/BLfuuscRNDE/maxresdefault.jpg'},
+   ]},
+  {id:'karina',en:'Karina',zh:'柳智敏',role:'aespa 队长 · ACE · 五代TOP',color:'#0a1028',accent:'#4169e1',grad:'#060a18,#0a1028',
+   photo:'https://img.youtube.com/vi/O1kyT6gQWF0/maxresdefault.jpg',
+   desc:'五代女团TOP。87支百万直拍断层第一，SOLO曲UP Melon日冠。',
+   scenes:[
+     {title:'UP Solo',sub:'Melon日冠',desc:'个人单曲UP达成Melon日冠，五代女SOLO唯一日冠纪录',photo:'https://img.youtube.com/vi/HmStZ8eQD98/maxresdefault.jpg'},
+     {title:'SUPERNOVA',sub:'铆钉贝雷帽',desc:'240525 音乐银行Supernova舞台，贝雷帽造型火遍全网',photo:'https://img.youtube.com/vi/tXywe4zsYog/maxresdefault.jpg'},
+     {title:'WHIPLASH',sub:'SMTOWN曼谷',desc:'260214 SMTOWN曼谷，短发造型+力量感舞蹈封神',photo:'https://img.youtube.com/vi/O1kyT6gQWF0/maxresdefault.jpg'},
+   ]},
+  {id:'wonyoung',en:'Wonyoung',zh:'张元英',role:'IVE 中心 · 全球偶像',color:'#280a14',accent:'#ff6b81',grad:'#1a060c,#280a14',
+   photo:'https://img.youtube.com/vi/XmutoqP5b58/maxresdefault.jpg',
+   desc:'全球现象级偶像。IZ*ONE出身，IVE中心，Miu Miu全球大使。',
+   scenes:[
+     {title:'LOVE DIVE',sub:'教科书表情',desc:'LOVE DIVE时期被评为教科书级表情管理的代表作',photo:'https://img.youtube.com/vi/A0vgoyTmkgQ/maxresdefault.jpg'},
+     {title:'KBS 歌谣',sub:'Tell Me',desc:'241220 KBS歌谣大祝祭，复古造型+Tell Me舞台惊艳全网',photo:'https://img.youtube.com/vi/TVUOS8lkEcY/maxresdefault.jpg'},
+     {title:'BLACKHOLE',sub:'暗物质甜心',desc:'260301 BLACKHOLE人气歌谣，怼脸直拍展现完美颜值',photo:'https://img.youtube.com/vi/XmutoqP5b58/maxresdefault.jpg'},
+   ]},
+  {id:'irene',en:'Irene',zh:'裴珠泫',role:'Red Velvet 队长 · 视觉中心 · 元祖神颜',color:'#200a1a',accent:'#ff6b9d',grad:'#140610,#200a1a',
+   photo:'https://img.youtube.com/vi/mLQNGN-MeFs/maxresdefault.jpg',
+   desc:'K-pop元祖神颜。Red Velvet队长，出道十年稳坐女团颜值巅峰。',
+   scenes:[
+     {title:'Cosmic',sub:'清纯爆发',desc:'2024 Cosmic回归，清纯造型+空灵嗓音获全网盛赞',photo:'https://img.youtube.com/vi/M_XcCzCnEM0/maxresdefault.jpg'},
+     {title:'Zimzalabim',sub:'传奇直拍',desc:'190831 4K直拍，红色亮片造型至今仍是入坑神器',photo:'https://img.youtube.com/vi/mMBwXC-eJBw/maxresdefault.jpg'},
+     {title:'RED FLAVOR',sub:'SMTOWN福冈',desc:'260131 SMTOWN福冈，Red Flavor经典舞台魅力依旧',photo:'https://img.youtube.com/vi/ipNINYewe1s/maxresdefault.jpg'},
+   ]},
+];
+const TOTAL=MEMBERS.length;
+
+const stage=document.getElementById('stage');
+const dotsEl=document.getElementById('dots');
+const counterEl=document.getElementById('counter');
+const efL=document.getElementById('efL');
+const efR=document.getElementById('efR');
+const detailOverlay=document.getElementById('detailOverlay');
+const detailCarousel=document.getElementById('detailCarousel');
+const detailTitle=document.getElementById('detailTitle');
+const detailDesc=document.getElementById('detailDesc');
+const detailDots=document.getElementById('detailDots');
+const detailClose=document.getElementById('detailClose');
+const detailWrap=document.getElementById('detailWrap');
+
+const cardEls=[];
+MEMBERS.forEach((m,i)=>{
+  const c=document.createElement('div');
+  c.className='card';
+  c.style.background=`linear-gradient(160deg,${m.grad})`;
+  c.innerHTML=`
+    <div class="card-bg" style="background-image:url(${m.photo})"></div>
+    <div class="card-gradient"></div>
+    <div class="card-label">
+      <span class="card-name-zh">${m.zh}</span>
+      <span class="card-name-en">${m.en}</span>
+      <span class="card-role">${m.role}</span>
+    </div>
+    <div class="swipe-up-hint">↑ 上滑详情</div>`;
+  stage.appendChild(c);
+  cardEls.push(c);
+  const d=document.createElement('div');d.className='dot';
+  d.addEventListener('click',()=>animateTo(i));
+  dotsEl.appendChild(d);
+});
+const dots=[...dotsEl.querySelectorAll('.dot')];
+const detailCardEls=[];
+let activeDetailIdx=0,currentDetailMember=-1;
+
+function buildDetailCards(mi){
+  detailCarousel.innerHTML='';detailCardEls.length=0;
+  const m=MEMBERS[mi];detailTitle.textContent=`${m.en} · ${m.zh}`;
+  m.scenes.forEach(s=>{
+    const dc=document.createElement('div');
+    dc.className='detail-card';
+    dc.style.background=`linear-gradient(160deg,${m.color} 0%,#0a0a0a 85%)`;
+    dc.innerHTML=`
+      <div class="card-bg" style="background-image:url(${s.photo||m.photo})"></div>
+      <div class="card-gradient"></div>
+      <div class="card-label">
+        <span class="card-name-zh">${s.sub}</span>
+        <span class="card-name-en">${s.title}</span>
+        <span class="card-role">${s.desc}</span>
+      </div>`;
+    detailCarousel.appendChild(dc);detailCardEls.push(dc);
+  });
+  detailDots.innerHTML='';
+  m.scenes.forEach(()=>{const dd=document.createElement('div');dd.className='detail-dot';detailDots.appendChild(dd);});
+}
+
+// ── RENDER ──
+let currentOffset=0,animFrameId=null,isAnimating=false;
+
+function render(offset){
+  currentOffset=offset;
+  cardEls.forEach((c,i)=>{
+    const d=i-offset,abs=Math.abs(d),sgn=Math.sign(d)||0,far=Math.max(0,abs-1);
+    // landscape card: wider spacing, less rotation
+    const tx=sgn*(150*(1-Math.exp(-abs*1.15)));
+    const ry=sgn*abs*40;
+    const tz=abs<0.5?100:abs<1.8?0:-80-far*50;
+    const sc=abs<0.5?1.0:0.85-far*0.035;
+    const op=abs<0.3?1:abs<2.5?1-(abs-0.3)*0.42:0;
+    c.style.transform=`translateX(${tx.toFixed(1)}px) translateZ(${tz.toFixed(0)}px) rotateY(${ry.toFixed(1)}deg) scale(${sc.toFixed(3)})`;
+    c.style.opacity=Math.max(0,Math.min(1,op));
+    c.style.zIndex=TOTAL-Math.round(abs);
+    if(abs<0.45&&!c.classList.contains('center-card'))c.classList.add('center-card');
+    else if(abs>=0.45)c.classList.remove('center-card');
+  });
+  const n=Math.round(offset);
+  dots.forEach((d,i)=>d.classList.toggle('active',i===n));
+  counterEl.textContent=`${Math.min(TOTAL,Math.max(1,n+1))}/${TOTAL}`;
+}
+
+function animateTo(targetIdx){
+  const target=Math.max(0,Math.min(TOTAL-1,targetIdx));
+  const start=currentOffset,startTime=performance.now();
+  const dist=Math.abs(target-start),dur=Math.min(500,180+dist*120);
+  const ease=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  cardEls.forEach(c=>{c.style.transition='none'});
+  isAnimating=true;
+  function tick(now){
+    const t=Math.min(1,(now-startTime)/dur);
+    render(start+(target-start)*ease(t));
+    if(t<1)animFrameId=requestAnimationFrame(tick);
+    else{render(target);isAnimating=false;animFrameId=null;}
+  }
+  if(animFrameId)cancelAnimationFrame(animFrameId);
+  animFrameId=requestAnimationFrame(tick);
+}
+
+// ── UNIFIED DRAG ──
+let isDragging=false,dragStartX=0,dragStartY=0,offsetAtStart=0,lastMoveX=0,lastMoveY=0,lastMoveTime=0;
+let direction=null;
+const velSamples=[];
+const DRAG_SCALE=0.0052;
+
+stage.addEventListener('pointerdown',e=>{
+  if(detailOverlay.classList.contains('active'))return;
+  if(isAnimating){if(animFrameId)cancelAnimationFrame(animFrameId);animFrameId=null;isAnimating=false;}
+  isDragging=true;direction=null;
+  dragStartX=e.clientX;dragStartY=e.clientY;offsetAtStart=currentOffset;
+  lastMoveX=e.clientX;lastMoveY=e.clientY;lastMoveTime=performance.now();velSamples.length=0;
+  cardEls.forEach(c=>{c.style.transition='none'});
+  stage.setPointerCapture(e.pointerId);
+});
+
+stage.addEventListener('pointermove',e=>{
+  if(!isDragging)return;
+  const dx=e.clientX-dragStartX,dy=e.clientY-dragStartY;
+  const absDx=Math.abs(dx),absDy=Math.abs(dy);
+  if(direction===null){
+    if(absDy>16&&absDy>absDx*1.0)direction='v';
+    else if(absDx>10)direction='h';
+  }
+  if(direction==='v'){
+    if(dy<-18){isDragging=false;direction=null;stage.releasePointerCapture(e.pointerId);openDetail(Math.round(currentOffset));}
+    return;
+  }
+  if(direction===null&&absDy>absDx*1.5)return;
+  const now=performance.now(),dt=Math.max(1,now-lastMoveTime);
+  const mv=e.clientX-lastMoveX;velSamples.push(mv/dt);
+  if(velSamples.length>6)velSamples.shift();
+  let raw=offsetAtStart-dx*DRAG_SCALE;
+  if(raw<-0.8)raw=-0.8+(raw+0.8)*0.2;
+  if(raw>TOTAL-0.2)raw=TOTAL-0.2+(raw-(TOTAL-0.2))*0.2;
+  raw=Math.max(-1.2,Math.min(TOTAL+0.2,raw));
+  render(raw);
+  lastMoveX=e.clientX;lastMoveY=e.clientY;lastMoveTime=now;
+});
+
+stage.addEventListener('pointerup',e=>{
+  if(!isDragging)return;
+  isDragging=false;stage.releasePointerCapture(e.pointerId);
+  if(direction==='v'){direction=null;return;}
+  const dx=e.clientX-dragStartX,absDx=Math.abs(dx);
+  const avgV=velSamples.length>0?velSamples.reduce((a,b)=>a+b,0)/velSamples.length:0;
+  const vb=avgV>0.1?-0.5:avgV<-0.1?0.5:0;
+  let target=Math.round(currentOffset+vb);
+  if(absDx>35){const dir=dx>0?-1:1;target=Math.round(offsetAtStart)+dir;}
+  target=Math.max(0,Math.min(TOTAL-1,target));
+  direction=null;animateTo(target);
+});
+
+// ── DETAIL ──
+function openDetail(mi){
+  currentDetailMember=mi;activeDetailIdx=0;
+  buildDetailCards(mi);detailOverlay.classList.add('active');
+  efL.style.opacity='0';efR.style.opacity='0';
+  renderDetail(0,false);updateDetailUI();
+}
+function closeDetail(){
+  detailOverlay.classList.remove('active');
+  efL.style.opacity='1';efR.style.opacity='1';currentDetailMember=-1;
+}
+detailClose.addEventListener('click',closeDetail);
+
+let detailOffset=0,detailDragging=false,detailStartX=0,detailOffsetStart=0,detailAnimId=null;
+function renderDetail(offset,instant){
+  detailOffset=offset;
+  const count=detailCardEls.length;
+  detailCardEls.forEach((dc,i)=>{
+    const d=i-offset,abs=Math.abs(d),sgn=Math.sign(d)||0;
+    const tx=sgn*(120*(1-Math.exp(-abs*1.3)));
+    const sc=abs<0.5?1:0.88-abs*0.04;
+    const op=abs<0.3?1:abs<1.5?1-abs*0.5:0;
+    dc.style.transform=`translateX(${tx.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+    dc.style.opacity=Math.max(0,Math.min(1,op));
+    dc.style.zIndex=count-Math.round(abs);
+    dc.style.pointerEvents=abs<0.5?'auto':'none';
+    dc.style.transition=instant?'none':'transform 0.35s cubic-bezier(0.25,0.1,0.25,1), opacity 0.35s cubic-bezier(0.25,0.1,0.25,1)';
+  });
+  updateDetailUI();
+}
+function updateDetailUI(){
+  const idx=Math.round(detailOffset);
+  detailDots.querySelectorAll('.detail-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  if(MEMBERS[currentDetailMember]){const s=MEMBERS[currentDetailMember].scenes[idx];if(s)detailDesc.textContent=s.desc;}
+}
+function animateDetailTo(targetIdx){
+  const count=detailCardEls.length,target=Math.max(0,Math.min(count-1,targetIdx));
+  const start=detailOffset,st=performance.now(),dur=Math.min(400,180+Math.abs(target-start)*120);
+  const ease=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  function tick(now){
+    const t=Math.min(1,(now-st)/dur);
+    renderDetail(start+(target-start)*ease(t),true);
+    if(t<1)detailAnimId=requestAnimationFrame(tick);
+    else{renderDetail(target,false);detailAnimId=null;activeDetailIdx=target;}
+  }
+  if(detailAnimId)cancelAnimationFrame(detailAnimId);
+  detailAnimId=requestAnimationFrame(tick);
+}
+detailWrap.addEventListener('pointerdown',e=>{
+  if(detailAnimId){cancelAnimationFrame(detailAnimId);detailAnimId=null;}
+  detailDragging=true;detailStartX=e.clientX;detailOffsetStart=detailOffset;
+  detailWrap.setPointerCapture(e.pointerId);e.stopPropagation();
+});
+detailWrap.addEventListener('pointermove',e=>{
+  if(!detailDragging)return;
+  let raw=detailOffsetStart-(e.clientX-detailStartX)*0.005;
+  raw=Math.max(-1,Math.min(detailCardEls.length,raw));
+  renderDetail(raw,true);
+});
+detailWrap.addEventListener('pointerup',e=>{
+  if(!detailDragging)return;
+  detailDragging=false;detailWrap.releasePointerCapture(e.pointerId);
+  const dx=e.clientX-detailStartX;
+  let target=Math.round(detailOffset);
+  if(Math.abs(dx)>40)target=dx>0?Math.round(detailOffsetStart)-1:Math.round(detailOffsetStart)+1;
+  target=Math.max(0,Math.min(detailCardEls.length-1,target));
+  animateDetailTo(target);
+});
+let detailVertY=0;
+detailWrap.addEventListener('pointerdown',e=>{detailVertY=e.clientY;},{capture:false});
+detailWrap.addEventListener('pointerup',e=>{if(e.clientY-detailVertY>60&&Math.abs(detailOffset-Math.round(detailOffset))<0.2)closeDetail();});
+
+document.addEventListener('keydown',e=>{
+  if(detailOverlay.classList.contains('active')){
+    if(e.key==='Escape'){closeDetail();return;}
+    if(e.key==='ArrowLeft')animateDetailTo(Math.round(detailOffset)-1);
+    if(e.key==='ArrowRight')animateDetailTo(Math.round(detailOffset)+1);
+    return;
+  }
+  if(e.key==='ArrowLeft')animateTo(Math.round(currentOffset)-1);
+  if(e.key==='ArrowRight')animateTo(Math.round(currentOffset)+1);
+});
+
+cardEls.forEach(c=>{c.style.transition='none'});
+render(0);
+</script>
+</body>
+</html>
